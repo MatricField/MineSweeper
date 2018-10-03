@@ -130,18 +130,22 @@ namespace MineSweep.Model
             {
                 return;
             }
-            cell.State = Explored;
-            if(cell.IsMine)
+            else if(cell.IsMine)
             {
+                cell.State = MineTriggered;
                 OnExploded(x, y);
                 return;
             }
-            else if (cell.ProximalMineCount == 0)
+            else
             {
-                foreach (var (x1, y1) in GetSurroundingCellsOf(x, y))
+                cell.State = Explored;
+                if (cell.ProximalMineCount == 0)
                 {
-                    Explore(x1, y1);
-                } 
+                    foreach (var (x1, y1) in GetSurroundingCellsOf(x, y))
+                    {
+                        Explore(x1, y1);
+                    }
+                }
             }
         }
 

@@ -7,7 +7,10 @@
         xmlns:model="clr-namespace:MineSweep.Model;assembly=MineSweep.Model"
         mc:Ignorable="d"
         x:Name="window"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow"
+        ResizeMode="CanMinimize"
+        SizeToContent="WidthAndHeight"
+        Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
     <Window.DataContext>
         <model:Game/>
     </Window.DataContext>
@@ -29,11 +32,62 @@
                             Click="Unexplored_Click"
                             Content="Unexplored"/>
                 </DataTemplate>
+                <DataTemplate x:Key="EndGameUnexplored">
+                    <Border BorderBrush="Black" BorderThickness="0.5">
+                        <Viewbox>
+                            <Button Grid.Row="{Binding X}"
+                                    Grid.Column="{Binding Y}"
+                                    Content="EndGameUnexplored"/>
+                        </Viewbox>
+                    </Border>
+                </DataTemplate>
                 <DataTemplate x:Key="Explored"
                               DataType="{x:Type model:Cell}">
-                    <TextBlock Grid.Row="{Binding X}"
+                    <Border BorderBrush="Black" BorderThickness="0.5">
+                        <Viewbox>
+                            <TextBlock Grid.Row="{Binding X}"
                                Grid.Column="{Binding Y}"
-                               Text="{Binding ProximalMineCount}"/>
+                               Text="{Binding ProximalMineCount}"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                                   FontFamily="Consolas">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="0">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="1">
+                                                <Setter Property="Foreground" Value="Blue"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="2">
+                                                <Setter Property="Foreground" Value="Green"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="3">
+                                                <Setter Property="Foreground" Value="Red"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="4">
+                                                <Setter Property="Foreground" Value="Purple"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="5">
+                                                <Setter Property="Foreground" Value="Maroon"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="6">
+                                                <Setter Property="Foreground" Value="Turquoise"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="7">
+                                                <Setter Property="Foreground" Value="Black"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ProximalMineCount}" Value="8">
+                                                <Setter Property="Foreground" Value="Gray"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Viewbox>
+                    </Border>
                 </DataTemplate>
                 <DataTemplate x:Key="Error">
                     <TextBlock Grid.Row="{Binding X}"
@@ -42,7 +96,9 @@
                     </TextBlock>
                 </DataTemplate>
             </DataTemplate.Resources>
-            <ContentControl Content="{Binding}">
+            <ContentControl Content="{Binding}"
+                            MaxWidth="30"
+                            Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}">
                 <ContentControl.Style>
                     <Style TargetType="{x:Type ContentControl}">
                         <Setter Property="ContentTemplate" Value="{StaticResource Error}"/>
@@ -61,11 +117,20 @@
                             </MultiDataTrigger>
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
-                                               Value="{x:Static model:GameState.OnGoing}"/>
+                                    <!--<Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
+                                               Value="{x:Static model:GameState.OnGoing}"/>-->
                                     <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Explored}"/>
                                 </MultiDataTrigger.Conditions>
                                 <Setter Property="ContentTemplate" Value="{StaticResource Explored}"/>
+                            </MultiDataTrigger>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
+                                               Value="{x:Static model:GameState.Ended}"/>
+                                    <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Unexplored}"/>
+                                    <Condition Binding="{Binding IsMine}" Value="False"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="ContentTemplate" Value="{StaticResource EndGameUnexplored}"/>
                             </MultiDataTrigger>
                         </Style.Triggers>
                     </Style>
@@ -97,11 +162,11 @@
         </DockPanel>
         <ItemsControl x:Name="MineField" DockPanel.Dock="Bottom"
                       ItemsSource="{Binding Cells}"
-                      ItemTemplate="{StaticResource GameCellTemplate}">
+                      ItemTemplate="{StaticResource GameCellTemplate}"
+                      HorizontalAlignment="Center">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid Rows="{Binding Width}"
-                                 Columns="{Binding Height}"/>
+                    <UniformGrid/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ItemsControl>

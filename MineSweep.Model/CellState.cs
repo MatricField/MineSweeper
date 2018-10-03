@@ -9,6 +9,7 @@ namespace MineSweep.Model
         Unexplored,
         Explored,
         MarkedAsMine,
-        MarkedAsInterest
+        MarkedAsInterest,
+        MineTriggered
     }
 }
