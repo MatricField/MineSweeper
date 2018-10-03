@@ -7,7 +7,7 @@
         xmlns:model="clr-namespace:MineSweep.Model;assembly=MineSweep.Model"
         mc:Ignorable="d"
         x:Name="window"
-        Title="MainWindow"
+        Title="MineSweep"
         ResizeMode="CanMinimize"
         SizeToContent="WidthAndHeight"
         Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
@@ -22,24 +22,13 @@
                       DataType="{x:Type model:Cell}">
                     <Button Grid.Row="{Binding X}"
                             Grid.Column="{Binding Y}"
-                            Click="PreStart_click"
-                            Content="PreStart"/>
+                            Click="PreStart_click"/>
                 </DataTemplate>
                 <DataTemplate x:Key="Unexplored"
                               DataType="{x:Type model:Cell}">
                     <Button Grid.Row="{Binding X}"
                             Grid.Column="{Binding Y}"
-                            Click="Unexplored_Click"
-                            Content="Unexplored"/>
-                </DataTemplate>
-                <DataTemplate x:Key="EndGameUnexplored">
-                    <Border BorderBrush="Black" BorderThickness="0.5">
-                        <Viewbox>
-                            <Button Grid.Row="{Binding X}"
-                                    Grid.Column="{Binding Y}"
-                                    Content="EndGameUnexplored"/>
-                        </Viewbox>
-                    </Border>
+                            Click="Unexplored_Click"/>
                 </DataTemplate>
                 <DataTemplate x:Key="Explored"
                               DataType="{x:Type model:Cell}">
@@ -89,6 +78,24 @@
                         </Viewbox>
                     </Border>
                 </DataTemplate>
+                <DataTemplate x:Key="EndGameUnexplored">
+                    <Button Grid.Row="{Binding X}"
+                            Grid.Column="{Binding Y}"/>
+                </DataTemplate>
+                <DataTemplate x:Key="MissedMine">
+                    <Border BorderBrush="Black" BorderThickness="0.5">
+                        <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" >
+                            <Image Source="MinesweeperIcon/mine.ico" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+                <DataTemplate x:Key="TriggeredMine">
+                    <Border BorderBrush="Black" BorderThickness="0.5">
+                        <Grid Background="Red">
+                            <Image Source="MinesweeperIcon/mine3.ico" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
                 <DataTemplate x:Key="Error">
                     <TextBlock Grid.Row="{Binding X}"
                                Grid.Column="{Binding Y}">
@@ -97,6 +104,7 @@
                 </DataTemplate>
             </DataTemplate.Resources>
             <ContentControl Content="{Binding}"
+                            Width="30"
                             MaxWidth="30"
                             Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}">
                 <ContentControl.Style>
@@ -132,6 +140,18 @@
                                 </MultiDataTrigger.Conditions>
                                 <Setter Property="ContentTemplate" Value="{StaticResource EndGameUnexplored}"/>
                             </MultiDataTrigger>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
+                                               Value="{x:Static model:GameState.Ended}"/>
+                                    <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Unexplored}"/>
+                                    <Condition Binding="{Binding IsMine}" Value="True"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="ContentTemplate" Value="{StaticResource MissedMine}"/>
+                            </MultiDataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="{x:Static model:CellState.MineTriggered}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource TriggeredMine}"/>
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </ContentControl.Style>
@@ -156,7 +176,7 @@
                     VerticalAlignment="Center"
                     Click="GameReset_Click">
                 <Button.Content>
-                    <Image Source="pack://application:,,,/MinesweeperIcon/smiley.ico"/>
+                    <Image Source="/MinesweeperIcon/smiley1.ico"/>
                 </Button.Content>
             </Button>
         </DockPanel>
