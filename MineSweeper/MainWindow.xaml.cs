@@ -27,9 +27,16 @@ namespace MineSweeper
             InitializeComponent();
         }
 
-        private void StartGame(object sender, RoutedEventArgs e)
+        private void GameReset_Click(object sender, RoutedEventArgs e)
         {
-            Game.Initialize(10, 10, 10, 4, 4);
+            Game.Reset();
+        }
+
+        private void PreStart_click(object sender, RoutedEventArgs e)
+        {
+            var x = Grid.GetRow((UIElement)sender);
+            var y = Grid.GetColumn((UIElement)sender);
+            Game.Initialize(x, y);
         }
 
         private void Unexplored_Click(object sender, RoutedEventArgs e)

@@ -6,21 +6,31 @@
         xmlns:local="clr-namespace:MineSweeper"
         xmlns:model="clr-namespace:MineSweep.Model;assembly=MineSweep.Model"
         mc:Ignorable="d"
+        x:Name="window"
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
         <model:Game/>
     </Window.DataContext>
     <Window.Resources>
-        <DataTemplate x:Key="NormalGameCellTemplate"
+        <DataTemplate x:Key="GameCellTemplate"
                       DataType="{x:Type model:Cell}">
             <DataTemplate.Resources>
+                <DataTemplate x:Key="PreStartGameCellTemplate"
+                      DataType="{x:Type model:Cell}">
+                    <Button Grid.Row="{Binding X}"
+                            Grid.Column="{Binding Y}"
+                            Click="PreStart_click"
+                            Content="PreStart"/>
+                </DataTemplate>
                 <DataTemplate x:Key="Unexplored"
                               DataType="{x:Type model:Cell}">
                     <Button Grid.Row="{Binding X}"
                             Grid.Column="{Binding Y}"
-                            Click="Unexplored_Click"/>
+                            Click="Unexplored_Click"
+                            Content="Unexplored"/>
                 </DataTemplate>
-                <DataTemplate x:Key="Explored">
+                <DataTemplate x:Key="Explored"
+                              DataType="{x:Type model:Cell}">
                     <TextBlock Grid.Row="{Binding X}"
                                Grid.Column="{Binding Y}"
                                Text="{Binding ProximalMineCount}"/>
@@ -29,11 +39,28 @@
             <ContentControl Content="{Binding}">
                 <ContentControl.Style>
                     <Style TargetType="{x:Type ContentControl}">
-                        <Setter Property="ContentTemplate" Value="{StaticResource Unexplored}"/>
+                        <Setter Property="ContentTemplate" Value="{StaticResource PreStartGameCellTemplate}"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding State}" Value="{x:Static model:CellState.Explored}">
-                                <Setter Property="ContentTemplate" Value="{StaticResource Explored}"/>
+                            <DataTrigger Binding="{Binding Path=DataContext.GameState, ElementName=window}" 
+                                         Value="{x:Static model:GameState.PreStart}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource PreStartGameCellTemplate}"/>
                             </DataTrigger>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
+                                               Value="{x:Static model:GameState.OnGoing}"/>
+                                    <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Unexplored}"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="ContentTemplate" Value="{StaticResource Unexplored}"/>
+                            </MultiDataTrigger>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
+                                               Value="{x:Static model:GameState.OnGoing}"/>
+                                    <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Explored}"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="ContentTemplate" Value="{StaticResource Explored}"/>
+                            </MultiDataTrigger>
                         </Style.Triggers>
                     </Style>
                 </ContentControl.Style>
@@ -56,15 +83,15 @@
             <Button x:Name="YellowFaceButton"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Click="StartGame">
+                    Click="GameReset_Click">
                 <Button.Content>
                     <Image Source="pack://application:,,,/MinesweeperIcon/smiley.ico"/>
                 </Button.Content>
             </Button>
         </DockPanel>
-        <ItemsControl DockPanel.Dock="Bottom"
+        <ItemsControl x:Name="MineField" DockPanel.Dock="Bottom"
                       ItemsSource="{Binding Cells}"
-                      ItemTemplate="{StaticResource NormalGameCellTemplate}">
+                      ItemTemplate="{StaticResource GameCellTemplate}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid Rows="{Binding Width}"

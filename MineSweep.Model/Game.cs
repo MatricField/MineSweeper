@@ -17,55 +17,66 @@ namespace MineSweep.Model
 
         public event EventHandler<ExplosionEventArgs> Exploded;
 
-        public const double MAX_MINE_RATIO = 0.6;
-
-        protected static readonly CellCollection EmptyMineField = new CellCollection();
-
         protected CellCollection CellData { get; set; }
 
         protected int Version { get; set; }
 
-        public int Width { get; protected set; }
+        public GameState GameState { get; protected set; }
 
-        public int Height { get; protected set; }
+        public Difficulty Difficulty { get; protected set; }
+
+        public int Width => Difficulty.Width;
+
+        public int Height => Difficulty.Height;
 
         public IEnumerable<Cell> Cells => CellData;
 
-        public int MineCount { get; protected set; }
+        public int MineCount => Difficulty.MineCount;
 
-        public int MarkedMineCount { get; protected set; }
+        public int UnmarkedMines { get; protected set; }
 
         public Game()
         {
-            Version = default(int);
-            CellData = EmptyMineField;
+            Version = default;
+            Difficulty = Difficulty.Beginner;
+            CellData = GenerateEmptyCollection();
+            GameState = GameState.PreStart;
         }
 
-        public static int CalculateMaxNumberOfMine(int width, int height) =>
-            Convert.ToInt32(Math.Floor(width * height * MAX_MINE_RATIO));
+        public void Reset()
+        {
+            GameState = GameState.PreStart;
+            CellData = GenerateEmptyCollection();
+            ++Version;
+        }
 
-        public void Initialize(int width, int height, int mineCount, int firstClickX, int firstClickY)
+        protected CellCollection GenerateEmptyCollection()
+        {
+            var ret = new CellCollection();
+            for(int i = 0; i < Width; ++i)
+            {
+                for(int j = 0; j < Height; ++j)
+                {
+                    ret.Add(Cell.CreateRegularCell(i, j, 0));
+                }
+            }
+            return ret;
+        }
+
+        public void Initialize(int firstClickX, int firstClickY)
         {
             const int isMine = -1;
-            if(mineCount < 0 || mineCount > CalculateMaxNumberOfMine(width, height))
-            {
-                throw new ArgumentException("Too many mines");
-            }
 
-            bool CheckIndex(int x, int y) =>
-                x >= 0 && x < width &&
-                y >= 0 && y < height;
-
-            var cellCounting = new int[width, height];
+            var cellCounting = new int[Width, Height];
             var rand = new Random();
-            for(var k = 0; k != mineCount; ++k)
+            for(var k = 0; k != MineCount; ++k)
             {
                 int x, y;
                 bool notToBeMine;
                 do
                 {
-                    x = rand.Next(width);
-                    y = rand.Next(height);
+                    x = rand.Next(Width);
+                    y = rand.Next(Height);
                     notToBeMine = 
                         cellCounting[x, y] == isMine ||
                         (x == firstClickX && y == firstClickY);
@@ -80,9 +91,9 @@ namespace MineSweep.Model
 
             var cells = new CellCollection();
 
-            for(var x = 0; x != width; ++x)
+            for(var x = 0; x != Width; ++x)
             {
-                for(var y = 0; y != height; ++y)
+                for(var y = 0; y != Height; ++y)
                 {
                     var proximalCount = cellCounting[x, y];
                     var cellIsMine = proximalCount == isMine;
@@ -98,11 +109,18 @@ namespace MineSweep.Model
             }
 
             CellData = cells;
-            MineCount = mineCount;
-            Width = width;
-            Height = height;
             ++Version;
             Explore(firstClickX, firstClickY);
+            GameState = GameState.OnGoing;
+        }
+
+        public void ChangeDifficulty(in Difficulty newDifficulty)
+        {
+            if(GameState == GameState.OnGoing)
+            {
+                throw new InvalidOperationException("Cannot change difficulty while game is in running state");
+            }
+            Difficulty = newDifficulty;
         }
 
         public void Explore(int x, int y)
@@ -139,7 +157,7 @@ namespace MineSweep.Model
                 throw ex;
             }
             cell.State = MarkedAsMine;
-            ++MarkedMineCount;
+            --UnmarkedMines;
         }
 
         protected IEnumerable<(int, int)> GetSurroundingCellsOf(int x, int y, Func<int, int, bool> IndexCondition)
@@ -170,6 +188,7 @@ namespace MineSweep.Model
         protected virtual void OnExploded(int x, int y)
         {
             Exploded?.Invoke(this, new ExplosionEventArgs(x, y));
+            GameState = GameState.Ended;
         }
     }
 }

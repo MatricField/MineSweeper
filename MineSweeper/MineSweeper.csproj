@@ -95,12 +95,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MineSweep.Model\MineSweep.Model.csproj">
-      <Project>{1ecd7f8e-444a-4433-acd7-98f9818f394b}</Project>
-      <Name>MineSweep.Model</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="MinesweeperIcon\flag.ico" />
     <Resource Include="MinesweeperIcon\mine.ico" />
     <Resource Include="MinesweeperIcon\mine2.ico" />
@@ -115,6 +109,12 @@
     <Resource Include="MinesweeperIcon\tile2.ico" />
     <Resource Include="MinesweeperIcon\tile3.ico" />
     <Resource Include="MinesweeperIcon\tile4.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MineSweep.Model\MineSweep.Model.csproj">
+      <Project>{1ecd7f8e-444a-4433-acd7-98f9818f394b}</Project>
+      <Name>MineSweep.Model</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

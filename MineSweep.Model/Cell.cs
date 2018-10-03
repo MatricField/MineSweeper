@@ -22,7 +22,13 @@ namespace MineSweep.Model
 
         public int ProximalMineCount { get; }
 
-        protected Cell(int x, int y, int proximalMineCount, bool isMine)
+        public Cell():
+            this(default, default, default, default)
+        {
+
+        }
+
+        public Cell(int x, int y, int proximalMineCount, bool isMine)
         {
             X = x;
             Y = y;
