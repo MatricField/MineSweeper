@@ -15,7 +15,7 @@
         <DataTemplate x:Key="GameCellTemplate"
                       DataType="{x:Type model:Cell}">
             <DataTemplate.Resources>
-                <DataTemplate x:Key="PreStartGameCellTemplate"
+                <DataTemplate x:Key="PreStart"
                       DataType="{x:Type model:Cell}">
                     <Button Grid.Row="{Binding X}"
                             Grid.Column="{Binding Y}"
@@ -35,15 +35,21 @@
                                Grid.Column="{Binding Y}"
                                Text="{Binding ProximalMineCount}"/>
                 </DataTemplate>
+                <DataTemplate x:Key="Error">
+                    <TextBlock Grid.Row="{Binding X}"
+                               Grid.Column="{Binding Y}">
+                        NotImplemented
+                    </TextBlock>
+                </DataTemplate>
             </DataTemplate.Resources>
             <ContentControl Content="{Binding}">
                 <ContentControl.Style>
                     <Style TargetType="{x:Type ContentControl}">
-                        <Setter Property="ContentTemplate" Value="{StaticResource PreStartGameCellTemplate}"/>
+                        <Setter Property="ContentTemplate" Value="{StaticResource Error}"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Path=DataContext.GameState, ElementName=window}" 
                                          Value="{x:Static model:GameState.PreStart}">
-                                <Setter Property="ContentTemplate" Value="{StaticResource PreStartGameCellTemplate}"/>
+                                <Setter Property="ContentTemplate" Value="{StaticResource PreStart}"/>
                             </DataTrigger>
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
