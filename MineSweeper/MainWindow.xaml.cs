@@ -21,7 +21,10 @@ namespace MineSweeper
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static RoutedCommand RightClickCommand = new RoutedCommand();
+
         private Game Game => (Game)DataContext;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -45,5 +48,14 @@ namespace MineSweeper
             var y = Grid.GetColumn((UIElement)sender);
             Game.Explore(x, y);
         }
+
+        private void RightClick_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var x = Grid.GetRow((UIElement)sender);
+            var y = Grid.GetColumn((UIElement)sender);
+            Game.Mark(x, y);
+        }
+
+        private void AlwaysCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = true;
     }
 }

@@ -8,6 +8,7 @@ namespace MineSweep.Model
     {
         PreStart,
         OnGoing,
-        Ended
+        Over,
+        Won
     }
 }

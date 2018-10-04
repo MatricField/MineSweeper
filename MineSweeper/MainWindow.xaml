@@ -14,7 +14,13 @@
     <Window.DataContext>
         <model:Game/>
     </Window.DataContext>
+    <!--<Window.CommandBindings>
+        <CommandBinding Command="{x:Static local:MainWindow.RightClickCommand}"
+                        Executed="RightClick_Executed"
+                        CanExecute="AlwaysCanExecute"/>
+    </Window.CommandBindings>-->
     <Window.Resources>
+        <RoutedCommand x:Key="RightClickCommand"/>
         <DataTemplate x:Key="GameCellTemplate"
                       DataType="{x:Type model:Cell}">
             <DataTemplate.Resources>
@@ -28,19 +34,70 @@
                               DataType="{x:Type model:Cell}">
                     <Button Grid.Row="{Binding X}"
                             Grid.Column="{Binding Y}"
-                            Click="Unexplored_Click"/>
+                            Click="Unexplored_Click">
+                        <Button.CommandBindings>
+                            <CommandBinding Command="{StaticResource RightClickCommand}"
+                                            Executed="RightClick_Executed"
+                                            CanExecute="AlwaysCanExecute"/>
+                        </Button.CommandBindings>
+                        <Button.InputBindings>
+                            <MouseBinding Gesture="RightClick"
+                                          Command="{StaticResource RightClickCommand}"/>
+                        </Button.InputBindings>
+                    </Button>
+                </DataTemplate>
+                <DataTemplate x:Key="MarkedAsMine"
+                              DataType="{x:Type model:Cell}">
+                    <Button Grid.Row="{Binding X}"
+                            Grid.Column="{Binding Y}">
+                        <Button.CommandBindings>
+                            <CommandBinding Command="{StaticResource RightClickCommand}"
+                                            Executed="RightClick_Executed"
+                                            CanExecute="AlwaysCanExecute"/>
+                        </Button.CommandBindings>
+                        <Button.InputBindings>
+                            <MouseBinding Gesture="RightClick"
+                                          Command="{StaticResource RightClickCommand}"/>
+                        </Button.InputBindings>
+                        <Button.Content>
+                            <Image Source="MinesweeperIcon/flag.ico"/>
+                        </Button.Content>
+                    </Button>
+                </DataTemplate>
+                <DataTemplate x:Key="MarkedAsInterest"
+                              DataType="{x:Type model:Cell}">
+                    <Button Grid.Row="{Binding X}"
+                            Grid.Column="{Binding Y}"
+                            Click="Unexplored_Click">
+                        <Button.CommandBindings>
+                            <CommandBinding Command="{StaticResource RightClickCommand}"
+                                            Executed="RightClick_Executed"
+                                            CanExecute="AlwaysCanExecute"/>
+                        </Button.CommandBindings>
+                        <Button.InputBindings>
+                            <MouseBinding Gesture="RightClick"
+                                          Command="{StaticResource RightClickCommand}"/>
+                        </Button.InputBindings>
+                        <Button.Content>
+                            <Viewbox>
+                                <TextBlock Text="?"
+                                           FontFamily="Consolas"
+                                           Foreground="DarkBlue"/>
+                            </Viewbox>
+                        </Button.Content>
+                    </Button>
                 </DataTemplate>
                 <DataTemplate x:Key="Explored"
                               DataType="{x:Type model:Cell}">
                     <Border BorderBrush="Black" BorderThickness="0.5">
                         <Viewbox>
                             <TextBlock Grid.Row="{Binding X}"
-                               Grid.Column="{Binding Y}"
-                               Text="{Binding ProximalMineCount}"
-                               FontWeight="Bold"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                                   FontFamily="Consolas">
+                                       Grid.Column="{Binding Y}"
+                                       Text="{Binding ProximalMineCount}"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       FontFamily="Consolas">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Style.Triggers>
@@ -123,18 +180,27 @@
                                 </MultiDataTrigger.Conditions>
                                 <Setter Property="ContentTemplate" Value="{StaticResource Unexplored}"/>
                             </MultiDataTrigger>
-                            <MultiDataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="{x:Static model:CellState.Explored}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource Explored}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="{x:Static model:CellState.MarkedAsMine}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource MarkedAsMine}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="{x:Static model:CellState.MarkedAsInterest}">
+                                <Setter Property="ContentTemplate" Value="{StaticResource MarkedAsInterest}"/>
+                            </DataTrigger>
+                            <!--<MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
-                                    <!--<Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
-                                               Value="{x:Static model:GameState.OnGoing}"/>-->
+                                    <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
+                                               Value="{x:Static model:GameState.OnGoing}"/>
                                     <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Explored}"/>
                                 </MultiDataTrigger.Conditions>
                                 <Setter Property="ContentTemplate" Value="{StaticResource Explored}"/>
-                            </MultiDataTrigger>
+                            </MultiDataTrigger>-->
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
                                     <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
-                                               Value="{x:Static model:GameState.Ended}"/>
+                                               Value="{x:Static model:GameState.Over}"/>
                                     <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Unexplored}"/>
                                     <Condition Binding="{Binding IsMine}" Value="False"/>
                                 </MultiDataTrigger.Conditions>
@@ -143,7 +209,7 @@
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
                                     <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
-                                               Value="{x:Static model:GameState.Ended}"/>
+                                               Value="{x:Static model:GameState.Over}"/>
                                     <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Unexplored}"/>
                                     <Condition Binding="{Binding IsMine}" Value="True"/>
                                 </MultiDataTrigger.Conditions>
@@ -176,7 +242,21 @@
                     VerticalAlignment="Center"
                     Click="GameReset_Click">
                 <Button.Content>
-                    <Image Source="/MinesweeperIcon/smiley1.ico"/>
+                    <Image>
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Setter Property="Source" Value="/MinesweeperIcon/smiley1.ico"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding GameState}" Value="{x:Static model:GameState.Won}">
+                                        <Setter Property="Source" Value="/MinesweeperIcon/smiley.ico"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding GameState}" Value="{x:Static model:GameState.Over}">
+                                        <Setter Property="Source" Value="/MinesweeperIcon/smiley3.ico"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
                 </Button.Content>
             </Button>
         </DockPanel>

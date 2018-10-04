@@ -35,12 +35,15 @@ namespace MineSweep.Model
 
         public int UnmarkedMines { get; protected set; }
 
+        protected int UnmakredCells { get; set; }
+
         public Game()
         {
             Version = default;
             Difficulty = Difficulty.Beginner;
             CellData = GenerateEmptyCollection();
             GameState = GameState.PreStart;
+            PropertyChanged += WinConditionCheck;
         }
 
         public void Reset()
@@ -109,6 +112,8 @@ namespace MineSweep.Model
             }
 
             CellData = cells;
+            UnmakredCells = cells.Count;
+            UnmarkedMines = Difficulty.MineCount;
             ++Version;
             Explore(firstClickX, firstClickY);
             GameState = GameState.OnGoing;
@@ -133,12 +138,14 @@ namespace MineSweep.Model
             else if(cell.IsMine)
             {
                 cell.State = MineTriggered;
+                --UnmakredCells;
                 OnExploded(x, y);
                 return;
             }
             else
             {
                 cell.State = Explored;
+                --UnmakredCells;
                 if (cell.ProximalMineCount == 0)
                 {
                     foreach (var (x1, y1) in GetSurroundingCellsOf(x, y))
@@ -149,19 +156,32 @@ namespace MineSweep.Model
             }
         }
 
-        public void MarkAsMine(int x, int y)
+        public void Mark(int x, int y)
         {
             var cell = CellData[(x, y)];
-            if(cell.State == Explored)
+            switch(cell.State)
             {
-                var ex = new InvalidOperationException("Cell is already explored");
-                ex.Data.Add("x", x);
-                ex.Data.Add("y", y);
-                ex.Data.Add("cell", cell);
-                throw ex;
+                case Unexplored:
+                    cell.State = MarkedAsMine;
+                    --UnmarkedMines;
+                    --UnmakredCells;
+                    break;
+                case MarkedAsMine:
+                    cell.State = MarkedAsInterest;
+                    ++UnmarkedMines;
+                    ++UnmakredCells;
+                    break;
+                case MarkedAsInterest:
+                    cell.State = Unexplored;
+                    break;
+                default:
+                    var ex = new InvalidOperationException("Cell cannot be marked");
+                    ex.Data.Add("x", x);
+                    ex.Data.Add("y", y);
+                    ex.Data.Add("cell", cell);
+                    throw ex;
             }
-            cell.State = MarkedAsMine;
-            --UnmarkedMines;
+            ++Version;
         }
 
         protected IEnumerable<(int, int)> GetSurroundingCellsOf(int x, int y, Func<int, int, bool> IndexCondition)
@@ -189,10 +209,21 @@ namespace MineSweep.Model
             i >= 0 && i < Width &&
             j >= 0 && j < Height;
 
+        protected virtual void WinConditionCheck(object o, PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(UnmakredCells) || e.PropertyName == nameof(UnmarkedMines))
+            {
+                if(UnmarkedMines == 0 && UnmakredCells == 0)
+                {
+                    GameState = GameState.Won;
+                }
+            }
+        }
+
         protected virtual void OnExploded(int x, int y)
         {
             Exploded?.Invoke(this, new ExplosionEventArgs(x, y));
-            GameState = GameState.Ended;
+            GameState = GameState.Over;
         }
     }
 }
