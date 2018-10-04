@@ -62,6 +62,30 @@
                         <Button.Content>
                             <Image Source="MinesweeperIcon/flag.ico"/>
                         </Button.Content>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding State}" Value="{x:Static model:CellState.MarkedAsMine}"/>
+                                            <Condition Binding="{Binding Path=DataContext.GameState, ElementName=window}" 
+                                               Value="{x:Static model:GameState.Over}"/>
+                                            <Condition Binding="{Binding IsMine}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="Azure"/>
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding State}" Value="{x:Static model:CellState.MarkedAsMine}"/>
+                                            <Condition Binding="{Binding Path=DataContext.GameState, ElementName=window}" 
+                                               Value="{x:Static model:GameState.Over}"/>
+                                            <Condition Binding="{Binding IsMine}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="Red"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                     </Button>
                 </DataTemplate>
                 <DataTemplate x:Key="MarkedAsInterest"
@@ -89,7 +113,7 @@
                 </DataTemplate>
                 <DataTemplate x:Key="Explored"
                               DataType="{x:Type model:Cell}">
-                    <Border BorderBrush="Black" BorderThickness="0.5">
+                    <Border BorderBrush="Black" BorderThickness="0.5" Background="White">
                         <Viewbox>
                             <TextBlock Grid.Row="{Binding X}"
                                        Grid.Column="{Binding Y}"
@@ -162,7 +186,6 @@
             </DataTemplate.Resources>
             <ContentControl Content="{Binding}"
                             Width="30"
-                            MaxWidth="30"
                             Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}">
                 <ContentControl.Style>
                     <Style TargetType="{x:Type ContentControl}">
@@ -189,14 +212,6 @@
                             <DataTrigger Binding="{Binding State}" Value="{x:Static model:CellState.MarkedAsInterest}">
                                 <Setter Property="ContentTemplate" Value="{StaticResource MarkedAsInterest}"/>
                             </DataTrigger>
-                            <!--<MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
-                                               Value="{x:Static model:GameState.OnGoing}"/>
-                                    <Condition Binding="{Binding State}" Value="{x:Static model:CellState.Explored}"/>
-                                </MultiDataTrigger.Conditions>
-                                <Setter Property="ContentTemplate" Value="{StaticResource Explored}"/>
-                            </MultiDataTrigger>-->
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
                                     <Condition Binding="{Binding DataContext.GameState, ElementName=window}" 
@@ -227,17 +242,42 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File">
-                    <MenuItem Header="_New Game"/>
-                    <MenuItem Header="_Settings"/>
-                    <Separator/>
+                <MenuItem Header="_New Game" Click="GameReset_Click"/>
+                <MenuItem x:Name="Menu_Beginner" Header="Beginner" Click="SetDifficulty_Clicked"/>
+                <MenuItem x:Name="Menu_Intermediate" Header="Intermediate" Click="SetDifficulty_Clicked"/>
+                <MenuItem x:Name="Menu_Expert" Header="Expert" Click="SetDifficulty_Clicked" />
+                <Separator/>
                     <MenuItem Header="_Close" Command="ApplicationCommands.Close"/>
                 </MenuItem>
                 <MenuItem Header="_Help">
                     <MenuItem Header="About"/>
                 </MenuItem>
             </Menu>
-        <DockPanel DockPanel.Dock="Top" MaxHeight="25">
-            <Button x:Name="YellowFaceButton"
+        <Grid DockPanel.Dock="Top" MaxHeight="25">
+            <Grid.Resources>
+                <Style x:Key="DgitalDisplayStyle" TargetType="TextBlock">
+                    <Setter Property="TextAlignment" Value="Center"/>
+                    <Setter Property="Background" Value="Black"/>
+                    <Setter Property="Foreground" Value="Red"/>
+                    <Setter Property="FontSize" Value="25"/>
+                    <Setter Property="FontFamily" Value="/Resources/#Cursed Timer ULiL"/>
+                </Style>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition SharedSizeGroup="NumericDisplay"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition SharedSizeGroup="NumericDisplay"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="2"
+                       Text="{Binding UnmarkedMines}"
+                       Width="30"
+                       HorizontalAlignment="Right"
+                       Style="{StaticResource DgitalDisplayStyle}"/>
+            <TextBlock Grid.Column="0"
+                       Text="{Binding StopwatchViewModel.Elasped, ElementName=window}"
+                       Style="{StaticResource DgitalDisplayStyle}"/>
+            <Button Grid.Column="1"
+                    x:Name="YellowFaceButton"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Click="GameReset_Click">
@@ -259,7 +299,7 @@
                     </Image>
                 </Button.Content>
             </Button>
-        </DockPanel>
+        </Grid>
         <ItemsControl x:Name="MineField" DockPanel.Dock="Bottom"
                       ItemsSource="{Binding Cells}"
                       ItemTemplate="{StaticResource GameCellTemplate}"

@@ -17,6 +17,8 @@ namespace MineSweep.Model
 
         public event EventHandler<ExplosionEventArgs> Exploded;
 
+        public event EventHandler GameWon;
+
         protected CellCollection CellData { get; set; }
 
         protected int Version { get; set; }
@@ -41,15 +43,16 @@ namespace MineSweep.Model
         {
             Version = default;
             Difficulty = Difficulty.Beginner;
-            CellData = GenerateEmptyCollection();
-            GameState = GameState.PreStart;
             PropertyChanged += WinConditionCheck;
+            Reset();
         }
 
         public void Reset()
         {
             GameState = GameState.PreStart;
             CellData = GenerateEmptyCollection();
+            UnmakredCells = CellData.Count;
+            UnmarkedMines = Difficulty.MineCount;
             ++Version;
         }
 
@@ -126,6 +129,7 @@ namespace MineSweep.Model
                 throw new InvalidOperationException("Cannot change difficulty while game is in running state");
             }
             Difficulty = newDifficulty;
+            Reset();
         }
 
         public void Explore(int x, int y)
@@ -216,6 +220,7 @@ namespace MineSweep.Model
                 if(UnmarkedMines == 0 && UnmakredCells == 0)
                 {
                     GameState = GameState.Won;
+                    GameWon?.Invoke(this, EventArgs.Empty);
                 }
             }
         }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MineSweep.Model
+namespace MineSweeper.ViewModel
 {
     public enum DifficultyEnum
     {
